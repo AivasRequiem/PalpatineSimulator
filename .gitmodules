@@ -1,0 +1,3 @@
+[submodule "Plugins/VRExpansionPlugin"]
+	path = Plugins/VRExpansionPlugin
+	url = https://github.com/mordentral/VRExpansionPlugin.git
