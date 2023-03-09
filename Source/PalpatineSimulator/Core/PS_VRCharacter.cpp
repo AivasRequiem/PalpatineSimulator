@@ -33,6 +33,8 @@ APS_VRCharacter::APS_VRCharacter() : BaseTurnRate(45.0f), BaseLookUpRate(45.0f),
 	VRReplicatedCamera->bLockToHmd = true;
 	VRReplicatedCamera->bAutoSetLockToHmd = true;
 	VRReplicatedCamera->SetRelativeLocation(FVector(0.0f, 0.0f, DefaultPlayerHeight));
+
+	TeleporterSocket = "TeleportSocket";
 }
 
 // Called when the game starts or when spawned
@@ -41,6 +43,9 @@ void APS_VRCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	SetupForPlatform();
+	
+	SpawnTeleporter(EControllerHand::Left);
+	SpawnTeleporter(EControllerHand::Right);
 }
 
 void APS_VRCharacter::SetupForPlatform()
@@ -100,6 +105,11 @@ void APS_VRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 	PEI->BindAction(InputActions->LeftGrip, ETriggerEvent::Completed, this, &APS_VRCharacter::LeftGripReleased);
 	PEI->BindAction(InputActions->RightGrip, ETriggerEvent::Started, this, &APS_VRCharacter::RightGripPressed);
 	PEI->BindAction(InputActions->RightGrip, ETriggerEvent::Completed, this, &APS_VRCharacter::RightGripReleased);
+
+	PEI->BindAction(InputActions->LeftTeleport, ETriggerEvent::Started, this, &APS_VRCharacter::LeftTeleportPressed);
+	PEI->BindAction(InputActions->LeftTeleport, ETriggerEvent::Completed, this, &APS_VRCharacter::LeftTeleportReleased);
+	PEI->BindAction(InputActions->RightTeleport, ETriggerEvent::Started, this, &APS_VRCharacter::RightTeleportPressed);
+	PEI->BindAction(InputActions->RightTeleport, ETriggerEvent::Completed, this, &APS_VRCharacter::RightTeleportReleased);
 }
 
 void APS_VRCharacter::ActivateFPSMode(bool Enable)
@@ -139,13 +149,13 @@ void APS_VRCharacter::MovePC(const FInputActionValue& Value)
 	if (Controller != nullptr)
 	{
 		const FVector2D MoveValue = Value.Get<FVector2D>();
- 
+
 		// Forward/Backward direction
 		if (MoveValue.Y != 0.f)
 		{
 			AddMovementInput(GetVRForwardVector(), MoveValue.Y);
 		}
- 
+
 		// Right/Left direction
 		if (MoveValue.X != 0.f)
 		{
@@ -159,12 +169,12 @@ void APS_VRCharacter::LookPC(const FInputActionValue& Value)
 	if (Controller != nullptr)
 	{
 		const FVector2D LookValue = Value.Get<FVector2D>();
- 
+
 		if (LookValue.X != 0.f)
 		{
 			AddControllerYawInput(LookValue.X * BaseTurnRate * GetWorld()->GetDeltaSeconds());
 		}
- 
+
 		if (LookValue.Y != 0.f)
 		{
 			AddControllerPitchInput(LookValue.Y * BaseLookUpRate * GetWorld()->GetDeltaSeconds());
@@ -190,4 +200,148 @@ void APS_VRCharacter::RightGripPressed_Implementation(const FInputActionValue& V
 void APS_VRCharacter::RightGripReleased_Implementation(const FInputActionValue& Value)
 {
 	RightGripAnim = false;
+}
+
+void APS_VRCharacter::SpawnTeleporter(EControllerHand Hand)
+{
+	const FAttachmentTransformRules AttachmentTransformRules(EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::KeepWorld, false);
+	FActorSpawnParameters ActorSpawnParameters = {};
+	ActorSpawnParameters.Owner = this;
+	ActorSpawnParameters.Instigator = this;
+
+	switch (Hand)
+	{
+	case EControllerHand::Left:
+		{
+			TeleportControllerLeft = GetWorld()->SpawnActor<APS_Teleporter>(APS_Teleporter::StaticClass(), ActorSpawnParameters);
+			TeleportControllerLeft->SetMotionController(LeftMotionController);
+
+			if (TeleportControllerLeft)
+			{
+				if (LeftHand)
+				{
+					TeleportControllerLeft->AttachToComponent(LeftHand, AttachmentTransformRules, TeleporterSocket);
+				}
+			}
+		}
+		break;
+		
+	case EControllerHand::Right:
+		{
+			TeleportControllerRight = GetWorld()->SpawnActor<APS_Teleporter>(APS_Teleporter::StaticClass(), ActorSpawnParameters);
+			TeleportControllerRight->SetMotionController(RightMotionController);
+
+			if (TeleportControllerRight)
+			{
+				if (RightHand)
+				{
+					TeleportControllerRight->AttachToComponent(RightHand, AttachmentTransformRules, TeleporterSocket);
+				}
+			}
+		}
+		break;
+		
+	default: break;
+	}
+}
+
+void APS_VRCharacter::LeftTeleportPressed(const FInputActionValue& Value)
+{
+	if (!CanTeleport())
+	{
+		return;
+	}
+
+	ActivateTeleporter(EControllerHand::Left, true);
+}
+
+void APS_VRCharacter::LeftTeleportReleased(const FInputActionValue& Value)
+{
+	if (!CanTeleport() || !TeleportControllerLeft->IsActivated())
+	{
+		return;
+	}
+
+	ExecuteTeleportation(EControllerHand::Left);
+}
+
+void APS_VRCharacter::RightTeleportPressed(const FInputActionValue& Value)
+{
+	if (!CanTeleport())
+	{
+		return;
+	}
+
+	ActivateTeleporter(EControllerHand::Right, true);
+}
+
+void APS_VRCharacter::RightTeleportReleased(const FInputActionValue& Value)
+{
+	if (!CanTeleport() || !TeleportControllerRight->IsActivated())
+	{
+		return;
+	}
+
+	ExecuteTeleportation(EControllerHand::Right);
+}
+
+bool APS_VRCharacter::CanTeleport() const
+{
+	return bTeleporterEnabled;
+}
+
+void APS_VRCharacter::ExecuteTeleportation(EControllerHand Hand)
+{
+	APS_Teleporter* TeleportController = nullptr;
+
+	switch (Hand)
+	{
+	case EControllerHand::Left:
+		TeleportController = TeleportControllerLeft;
+		break;
+
+	case EControllerHand::Right:
+		TeleportController = TeleportControllerRight;
+		break;
+	}
+
+	// Either no TeleportController class was specified, means the user didn't want to use
+	// a Teleporter at all, or we received a wrong Hand enum which should not happen. 
+	if (!TeleportController)
+	{
+		return;
+	}
+
+	// Execute the teleportation.
+	TeleportController->ExecuteTeleportation(VRMovementReference, GetActorTransform(), GetVRLocation(), GetActorRotation());
+	// Disable the Teleporter.
+	ActivateTeleporter(Hand, false);
+}
+
+void APS_VRCharacter::ActivateTeleporter(EControllerHand Hand, bool InActivate)
+{
+	OnTeleportationActivatedEvent.Broadcast(Hand, InActivate);
+
+	switch (Hand)
+	{
+	case EControllerHand::Left:
+		{
+			if (TeleportControllerLeft)
+			{
+				TeleportControllerLeft->ActivateTeleporter(InActivate);
+			}
+		}
+		break;
+
+	case EControllerHand::Right:
+		{
+			if (TeleportControllerRight)
+			{
+				TeleportControllerRight->ActivateTeleporter(InActivate);
+			}
+		}
+		break;
+
+	default: break;
+	}
 }

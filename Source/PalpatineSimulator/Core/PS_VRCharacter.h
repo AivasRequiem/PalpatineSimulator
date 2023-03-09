@@ -6,6 +6,7 @@
 #include "VRCharacter.h"
 #include "PS_InputConfigData.h"
 #include "EnhancedInput/Public/InputMappingContext.h"
+#include "PalpatineSimulator/CharacterTools/PS_Teleporter.h"
 #include "PS_VRCharacter.generated.h"
 
 UENUM(BlueprintType)
@@ -27,6 +28,8 @@ enum class EObjectHoldType : uint8
 };
 
 DECLARE_LOG_CATEGORY_EXTERN(LogPSVRCharacter, Log, All);
+
+DECLARE_MULTICAST_DELEGATE_TwoParams(FOnTeleportationActivated, EControllerHand, bool);
 
 UCLASS()
 class PALPATINESIMULATOR_API APS_VRCharacter : public AVRCharacter
@@ -82,6 +85,36 @@ public:
 	bool LeftGripAnim;
 	UPROPERTY(BlueprintReadWrite, Category = "Hands|Animation")
 	bool RightGripAnim;
+
+	/********************************* Teleport *********************************/ 
+	UFUNCTION(BlueprintCallable) void LeftTeleportPressed(const FInputActionValue& Value);
+	UFUNCTION(BlueprintCallable) void LeftTeleportReleased(const FInputActionValue& Value);
+	UFUNCTION(BlueprintCallable) void RightTeleportPressed(const FInputActionValue& Value);
+	UFUNCTION(BlueprintCallable) void RightTeleportReleased(const FInputActionValue& Value);
+
+	virtual bool CanTeleport() const;
+
+	UFUNCTION()
+	void ExecuteTeleportation(EControllerHand Hand);
+
+	// Activate/Deactivate the Teleporter.
+	UFUNCTION(BlueprintCallable, Category = "PixoVR")
+	void ActivateTeleporter(EControllerHand Hand, bool InActivate);
+
+	void SpawnTeleporter(EControllerHand Hand);
+	
+	UPROPERTY(BlueprintReadOnly, Category = "Teleport")
+	APS_Teleporter* TeleportControllerLeft;
+	UPROPERTY(BlueprintReadOnly, Category = "Teleport")
+	APS_Teleporter* TeleportControllerRight;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Teleport")
+	FName TeleporterSocket;
+
+	// Allows for disabling of Teleporter via BP
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Teleport")
+	bool bTeleporterEnabled = true;
+
+	FOnTeleportationActivated OnTeleportationActivatedEvent;
 
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")

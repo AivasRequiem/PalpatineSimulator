@@ -17,10 +17,14 @@ public:
 	UInputAction* InputMovePC;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	UInputAction* InputLookPC;
-
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	UInputAction* LeftGrip;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	UInputAction* RightGrip;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UInputAction* LeftTeleport;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UInputAction* RightTeleport;
 };
