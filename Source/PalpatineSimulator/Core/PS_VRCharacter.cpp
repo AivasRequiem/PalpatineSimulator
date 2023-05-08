@@ -5,8 +5,10 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "GripMotionControllerComponent.h"
+#include "GrippableFunctionLibrary.h"
 #include "HeadMountedDisplayFunctionLibrary.h"
 #include "VRCharacterMovementComponent.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 DEFINE_LOG_CATEGORY(LogPSVRCharacter);
 
@@ -20,10 +22,28 @@ APS_VRCharacter::APS_VRCharacter() : BaseTurnRate(45.0f), BaseLookUpRate(45.0f),
 	LeftHand->SetRelativeRotation(FRotator(0.0f, 0.0f, 90.0f));
 	LeftHand->SetRelativeScale3D(FVector(1.0f, 1.0f, -1.0f));
 	LeftHand->SetupAttachment(LeftMotionController);
+
+	LeftGrabSphere = CreateDefaultSubobject<USphereComponent>(TEXT("Left Grab Sphere"));
+	LeftGrabSphere->SetupAttachment(LeftMotionController);
+	LeftGrabSphere->SetCollisionProfileName("OverlapAll");
+	LeftGrabSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	LeftGrabSphere->SetVisibility(true, true);
+	LeftGrabSphere->SetHiddenInGame(false, true);
+	LeftGrabSphere->SetSphereRadius(4.0f);
+	LeftGrabSphere->SetRelativeLocation(FVector(2.0f, 0.0f, -2.5f));
 	
 	RightHand = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Right Hand"));
 	RightHand->SetRelativeRotation(FRotator(0.0f, 0.0f, 90.0f));
 	RightHand->SetupAttachment(RightMotionController);
+	
+	RightGrabSphere = CreateDefaultSubobject<USphereComponent>(TEXT("Right Grab Sphere"));
+	RightGrabSphere->SetupAttachment(RightMotionController);
+	RightGrabSphere->SetCollisionProfileName("OverlapAll");
+	RightGrabSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	RightGrabSphere->SetVisibility(true, true);
+	RightGrabSphere->SetHiddenInGame(false, true);
+	RightGrabSphere->SetSphereRadius(4.0f);
+	RightGrabSphere->SetRelativeLocation(FVector(2.0f, 0.0f, -2.5f));
 	
 	bUseControllerRotationPitch = true;
 	bUseControllerRotationYaw = true;
@@ -46,6 +66,16 @@ void APS_VRCharacter::BeginPlay()
 	
 	SpawnTeleporter(EControllerHand::Left);
 	SpawnTeleporter(EControllerHand::Right);
+}
+
+void APS_VRCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+	
+	LeftMotionController->AddTickPrerequisiteComponent(GetCharacterMovement());
+	LeftMotionController->OverrideSendTransform = &AVRBaseCharacter::Server_SendTransformLeftController;
+	RightMotionController->AddTickPrerequisiteComponent(GetCharacterMovement());
+	RightMotionController->OverrideSendTransform = &AVRBaseCharacter::Server_SendTransformRightController;
 }
 
 void APS_VRCharacter::SetupForPlatform()
@@ -185,21 +215,25 @@ void APS_VRCharacter::LookPC(const FInputActionValue& Value)
 void APS_VRCharacter::LeftGripPressed_Implementation(const FInputActionValue& Value)
 {
 	LeftGripAnim = true;
+	UGrippableFunctionLibrary::GripObject(LeftMotionController, RightMotionController, LeftGrabSphere);
 }
 
 void APS_VRCharacter::LeftGripReleased_Implementation(const FInputActionValue& Value)
 {
 	LeftGripAnim = false;
+	UGrippableFunctionLibrary::DropObject(LeftMotionController);
 }
 
 void APS_VRCharacter::RightGripPressed_Implementation(const FInputActionValue& Value)
 {
 	RightGripAnim = true;
+	UGrippableFunctionLibrary::GripObject(RightMotionController, LeftMotionController, RightGrabSphere);
 }
 
 void APS_VRCharacter::RightGripReleased_Implementation(const FInputActionValue& Value)
 {
 	RightGripAnim = false;
+	UGrippableFunctionLibrary::DropObject(RightMotionController);
 }
 
 void APS_VRCharacter::SpawnTeleporter(EControllerHand Hand)

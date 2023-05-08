@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "VRCharacter.h"
 #include "PS_InputConfigData.h"
+#include "Components/SphereComponent.h"
 #include "EnhancedInput/Public/InputMappingContext.h"
 #include "PalpatineSimulator/CharacterTools/PS_Teleporter.h"
 #include "PS_VRCharacter.generated.h"
@@ -43,6 +44,7 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+	virtual void PossessedBy(AController* NewController) override;
 
 	void SetupForPlatform();
 
@@ -52,7 +54,7 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-	
+
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Hands")
 	void RightGripPressed(const FInputActionValue& Value);
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Hands")
@@ -80,6 +82,10 @@ public:
 	USkeletalMeshComponent* LeftHand;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hands")
 	USkeletalMeshComponent* RightHand;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Hands")
+	USphereComponent* LeftGrabSphere;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Hands")
+	USphereComponent* RightGrabSphere;
 	
 	UPROPERTY(BlueprintReadWrite, Category = "Hands|Animation")
 	bool LeftGripAnim;

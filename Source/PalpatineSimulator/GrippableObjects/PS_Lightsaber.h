@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Grippables/GrippableActor.h"
+#include "Grippables/HandSocketComponent.h"
 #include "PS_Lightsaber.generated.h"
 
 UCLASS()
@@ -19,6 +20,11 @@ public:
 	UStaticMeshComponent* Hilt;
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	UStaticMeshComponent* Blade;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Grip")
+	UHandSocketComponent* PrimaryGripSocket;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Grip")
+	UHandSocketComponent* SecondaryGripSocket;
 
 protected:
 	// Called when the game starts or when spawned
