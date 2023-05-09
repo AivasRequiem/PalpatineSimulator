@@ -27,4 +27,9 @@ public:
 	UInputAction* LeftTeleport;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	UInputAction* RightTeleport;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UInputAction* LeftActivateItem;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UInputAction* RightActivateItem;
 };

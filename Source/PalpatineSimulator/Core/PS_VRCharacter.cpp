@@ -9,6 +9,7 @@
 #include "HeadMountedDisplayFunctionLibrary.h"
 #include "VRCharacterMovementComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "PalpatineSimulator/Interfaces/InteractableItem.h"
 
 DEFINE_LOG_CATEGORY(LogPSVRCharacter);
 
@@ -29,8 +30,8 @@ APS_VRCharacter::APS_VRCharacter() : BaseTurnRate(45.0f), BaseLookUpRate(45.0f),
 	LeftGrabSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	LeftGrabSphere->SetVisibility(true, true);
 	LeftGrabSphere->SetHiddenInGame(false, true);
-	LeftGrabSphere->SetSphereRadius(4.0f);
-	LeftGrabSphere->SetRelativeLocation(FVector(2.0f, 0.0f, -2.5f));
+	LeftGrabSphere->SetSphereRadius(6.0f);
+	LeftGrabSphere->SetRelativeLocation(FVector(5.0f, 0.0f, 0.0f));
 	
 	RightHand = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Right Hand"));
 	RightHand->SetRelativeRotation(FRotator(0.0f, 0.0f, 90.0f));
@@ -42,8 +43,8 @@ APS_VRCharacter::APS_VRCharacter() : BaseTurnRate(45.0f), BaseLookUpRate(45.0f),
 	RightGrabSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	RightGrabSphere->SetVisibility(true, true);
 	RightGrabSphere->SetHiddenInGame(false, true);
-	RightGrabSphere->SetSphereRadius(4.0f);
-	RightGrabSphere->SetRelativeLocation(FVector(2.0f, 0.0f, -2.5f));
+	RightGrabSphere->SetSphereRadius(6.0f);
+	RightGrabSphere->SetRelativeLocation(FVector(5.0f, 0.0f, 0.0f));
 	
 	bUseControllerRotationPitch = true;
 	bUseControllerRotationYaw = true;
@@ -140,6 +141,19 @@ void APS_VRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 	PEI->BindAction(InputActions->LeftTeleport, ETriggerEvent::Completed, this, &APS_VRCharacter::LeftTeleportReleased);
 	PEI->BindAction(InputActions->RightTeleport, ETriggerEvent::Started, this, &APS_VRCharacter::RightTeleportPressed);
 	PEI->BindAction(InputActions->RightTeleport, ETriggerEvent::Completed, this, &APS_VRCharacter::RightTeleportReleased);
+
+	PEI->BindAction(InputActions->LeftActivateItem, ETriggerEvent::Started, this, &APS_VRCharacter::LeftActivateItem);
+	PEI->BindAction(InputActions->RightActivateItem, ETriggerEvent::Started, this, &APS_VRCharacter::RightActivateItem);
+}
+
+void APS_VRCharacter::LeftActivateItem_Implementation()
+{
+	ActivateItemInHand(LeftMotionController);
+}
+
+void APS_VRCharacter::RightActivateItem_Implementation()
+{
+	ActivateItemInHand(RightMotionController);
 }
 
 void APS_VRCharacter::ActivateFPSMode(bool Enable)
@@ -153,7 +167,7 @@ void APS_VRCharacter::ActivateFPSMode(bool Enable)
 		LeftMotionController->AttachToComponent(VRReplicatedCamera, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, false));
 		LeftMotionController->SetRelativeLocation(FVector(62.0f, -28.0f, -15.0f));
 		LeftHand->SetRelativeLocation(FVector(-12.0f, 0.0f, 0.0f));
-		LeftHand->SetRelativeRotation(FRotator(0.0f, 0.0f, -90.0f));
+		LeftHand->SetRelativeRotation(FRotator(0.0f, 0.0f, 90.0f));
 
 		RightMotionController->bUseWithoutTracking = true;
 		RightMotionController->bOffsetByControllerProfile = true;
@@ -279,6 +293,20 @@ void APS_VRCharacter::SpawnTeleporter(EControllerHand Hand)
 	}
 }
 
+void APS_VRCharacter::ActivateItemInHand(UGripMotionControllerComponent* Hand)
+{
+	TArray<FBPActorGripInformation> GripArray;
+	Hand->GetAllGrips(GripArray);
+
+	for (auto Grip : GripArray)
+	{
+		if (Grip.GrippedObject->Implements<UInteractableItem>())
+		{
+			IInteractableItem::Execute_ActivateItem(Grip.GrippedObject);
+		}
+	}
+}
+
 void APS_VRCharacter::LeftTeleportPressed(const FInputActionValue& Value)
 {
 	if (!CanTeleport())
@@ -337,6 +365,7 @@ void APS_VRCharacter::ExecuteTeleportation(EControllerHand Hand)
 	case EControllerHand::Right:
 		TeleportController = TeleportControllerRight;
 		break;
+	default: return;
 	}
 
 	// Either no TeleportController class was specified, means the user didn't want to use

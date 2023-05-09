@@ -51,7 +51,6 @@ protected:
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
@@ -64,13 +63,18 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Hands")
 	void LeftGripReleased(const FInputActionValue& Value);
 
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Hands")
+	void LeftActivateItem();
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Hands")
+	void RightActivateItem();
+
 	// For Windows
 	UFUNCTION()
 	void ActivateFPSMode(bool Enable);
 	
 	void MovePC(const FInputActionValue& Value);
 	void LookPC(const FInputActionValue& Value);
-	
+
 	bool bFPSMode;
 	float BaseTurnRate;
 	float BaseLookUpRate;
@@ -123,6 +127,8 @@ public:
 	FOnTeleportationActivated OnTeleportationActivatedEvent;
 
 protected:
+	void ActivateItemInHand(UGripMotionControllerComponent* Hand);
+	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
 	UInputMappingContext* InputMapping;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
