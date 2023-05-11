@@ -36,17 +36,19 @@ public:
 	void TurnOn();
 	UFUNCTION(BlueprintCallable)
 	void TurnOff();
-	
+
 	virtual void ActivateItem_Implementation() override;
 
 	// Event triggered on the interfaced object when grip is released
-	virtual void OnGripRelease_Implementation(UGripMotionControllerComponent* ReleasingController, const FBPActorGripInformation& GripInformation, bool bWasSocketed = false) override;
+	virtual void OnGripRelease_Implementation(UGripMotionControllerComponent* ReleasingController,
+	                                          const FBPActorGripInformation& GripInformation,
+	                                          bool bWasSocketed = false) override;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	UStaticMeshComponent* Hilt;
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	UStaticMeshComponent* Blade;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	UAudioComponent* HummingAudio;
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
@@ -56,9 +58,11 @@ public:
 	UHandSocketComponent* PrimaryGripSocket;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Grip")
 	UHandSocketComponent* SecondaryGripSocket;
-	
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UNiagaraComponent* BladeCrossSparks;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UNiagaraSystem* WallBurnVFX;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	EBladeColor BladeColor;
@@ -77,17 +81,29 @@ protected:
 	USoundCue* DeactivationSound;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	USoundCue* HummingSound;
-	
+
 	bool TurnedOn;
+
+	// Slicing
+	UFUNCTION(Category="Slicing")
+	void OnBladeEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp,
+	                       int32 OtherBodyIndex);
+
+	UPROPERTY(BlueprintReadOnly, Category="Slicing")
+	bool IsSlicing = false;
+	UPROPERTY(BlueprintReadOnly, Category="Slicing")
+	FVector StartSlicePoint;
+
+	UPROPERTY(BlueprintReadOnly)
+	FName BottomBladeSocket = "Bottom";
+	UPROPERTY(BlueprintReadOnly)
+	FName TopBladeSocket = "Top";
 
 private:
 	UFUNCTION()
 	void TurnOnTimelineProgress(float Value);
 	UFUNCTION()
 	void TimelineFinishedCallback();
-	
-	FName BottomBladeSocket = "Bottom";
-	FName TopBladeSocket = "Top";
 
 	UPROPERTY(EditDefaultsOnly)
 	TMap<EBladeColor, FLinearColor> PossibleBladeColors;

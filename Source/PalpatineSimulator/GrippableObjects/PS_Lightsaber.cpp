@@ -9,6 +9,7 @@
 #include "Components/AudioComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "PalpatineSimulator/SlicingObjects/SlicingActor.h"
 
 // Sets default values
 APS_Lightsaber::APS_Lightsaber(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
@@ -101,6 +102,33 @@ void APS_Lightsaber::OnGripRelease_Implementation(UGripMotionControllerComponent
 	TurnOff();
 }
 
+void APS_Lightsaber::OnBladeEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+                                       UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	if (IsSlicing)
+	{
+		if (const ASlicingActor* SlicingActor = Cast<ASlicingActor>(OtherActor))
+		{
+			UProceduralMeshComponent* SlicingMesh = Cast<UProceduralMeshComponent>(OtherComp);
+			IsSlicing = false;
+			//EndSlicePoint = HitResult.Location;
+
+			const FVector SlicePlane = FVector::CrossProduct(
+				Blade->GetSocketLocation(BottomBladeSocket) - StartSlicePoint,
+				Blade->GetSocketLocation(BottomBladeSocket) - Blade->GetSocketLocation(TopBladeSocket));
+
+			UProceduralMeshComponent* NewProcMesh;
+			UKismetProceduralMeshLibrary::SliceProceduralMesh(SlicingMesh, StartSlicePoint,
+			                                                  SlicePlane.GetSafeNormal(), true, NewProcMesh,
+			                                                  EProcMeshSliceCapOption::CreateNewSectionForCap,
+			                                                  Blade->GetMaterial(0));
+			NewProcMesh->SetSimulatePhysics(true);
+			const FVector ImpulseVector = (NewProcMesh->GetComponentLocation() - SlicingMesh->GetComponentLocation()).GetSafeNormal() * 500.f;
+			NewProcMesh->AddImpulse(ImpulseVector, NAME_None, true);
+		}
+	}
+}
+
 void APS_Lightsaber::BeginPlay()
 {
 	Super::BeginPlay();
@@ -133,6 +161,8 @@ void APS_Lightsaber::BeginPlay()
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, "APixoVRPlayerController::BeginPlay Setup ChangingFadeOpacityCurve");
 	}
+
+	Blade->OnComponentEndOverlap.AddDynamic(this, &APS_Lightsaber::OnBladeEndOverlap);
 }
 
 void APS_Lightsaber::Tick(float DeltaTime)
@@ -144,13 +174,24 @@ void APS_Lightsaber::Tick(float DeltaTime)
 	if (TurnedOn)
 	{
 		FHitResult HitResult;
-		const bool IsHit = GetWorld()->LineTraceSingleByChannel(HitResult, Blade->GetSocketLocation(BottomBladeSocket), Blade->GetSocketLocation(TopBladeSocket), ECC_Visibility);
+		const bool IsHit = GetWorld()->LineTraceSingleByChannel(HitResult,
+		                                                        Blade->GetSocketLocation(BottomBladeSocket),
+		                                                        Blade->GetSocketLocation(TopBladeSocket),
+		                                                        ECC_Visibility);
 
 		if (IsHit)
 		{
 			BladeCrossSparks->SetWorldLocation(HitResult.Location);
 			BladeCrossSparks->SetWorldScale3D(FVector(UKismetMathLibrary::RandomFloatInRange(0.5, 0.9)));
 			BladeCrossSparks->Activate();
+
+			UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, WallBurnVFX, HitResult.Location);
+
+			if (!IsSlicing && HitResult.GetActor()->IsA(ASlicingActor::StaticClass()))
+			{
+				IsSlicing = true;
+				StartSlicePoint = HitResult.Location;
+			}
 		}
 		else if (BladeCrossSparks->IsActive())
 		{
