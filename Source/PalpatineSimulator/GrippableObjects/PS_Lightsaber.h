@@ -93,6 +93,8 @@ protected:
 	bool IsSlicing = false;
 	UPROPERTY(BlueprintReadOnly, Category="Slicing")
 	FVector StartSlicePoint;
+	UPROPERTY(EditDefaultsOnly, Category="Slicing")
+	UMaterial* SlicedEdgeMaterial;
 
 	UPROPERTY(BlueprintReadOnly)
 	FName BottomBladeSocket = "Bottom";

@@ -20,19 +20,10 @@ ASlicingActor::ASlicingActor()
 	MeshToCopy->SetHiddenInGame(true);
 	MeshToCopy->SetVisibility(false);
 
-	//UKismetProceduralMeshLibrary::CopyProceduralMeshFromStaticMeshComponent(MeshToCopy, 0, SlicingMesh, true);
+	SlicedMeshes.AddUnique(SlicingMesh);
 }
 
-// Called when the game starts or when spawned
-void ASlicingActor::BeginPlay()
+void ASlicingActor::MeshSliced_Implementation()
 {
-	Super::BeginPlay();
-	
-}
-
-// Called every frame
-void ASlicingActor::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
 }
 

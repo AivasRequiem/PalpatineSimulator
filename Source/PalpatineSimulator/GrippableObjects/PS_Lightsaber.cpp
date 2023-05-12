@@ -107,7 +107,7 @@ void APS_Lightsaber::OnBladeEndOverlap(UPrimitiveComponent* OverlappedComponent,
 {
 	if (IsSlicing)
 	{
-		if (const ASlicingActor* SlicingActor = Cast<ASlicingActor>(OtherActor))
+		if (ASlicingActor* SlicingActor = Cast<ASlicingActor>(OtherActor))
 		{
 			UProceduralMeshComponent* SlicingMesh = Cast<UProceduralMeshComponent>(OtherComp);
 			IsSlicing = false;
@@ -121,7 +121,11 @@ void APS_Lightsaber::OnBladeEndOverlap(UPrimitiveComponent* OverlappedComponent,
 			UKismetProceduralMeshLibrary::SliceProceduralMesh(SlicingMesh, StartSlicePoint,
 			                                                  SlicePlane.GetSafeNormal(), true, NewProcMesh,
 			                                                  EProcMeshSliceCapOption::CreateNewSectionForCap,
-			                                                  Blade->GetMaterial(0));
+			                                                  SlicedEdgeMaterial);
+
+			SlicingActor->SlicedMeshes.AddUnique(NewProcMesh);
+			SlicingActor->MeshSliced();
+
 			NewProcMesh->SetSimulatePhysics(true);
 			const FVector ImpulseVector = (NewProcMesh->GetComponentLocation() - SlicingMesh->GetComponentLocation()).GetSafeNormal() * 500.f;
 			NewProcMesh->AddImpulse(ImpulseVector, NAME_None, true);

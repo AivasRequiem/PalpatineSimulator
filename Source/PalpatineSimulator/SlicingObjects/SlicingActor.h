@@ -16,17 +16,15 @@ public:
 	// Sets default values for this actor's properties
 	ASlicingActor();
 
+	UFUNCTION(BlueprintNativeEvent)
+	void MeshSliced();
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UProceduralMeshComponent* SlicingMesh;
 	// Allow CPUAccess for Mesh
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UStaticMeshComponent* MeshToCopy;
 
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-
-public:
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	TArray<UProceduralMeshComponent*> SlicedMeshes;
 };
