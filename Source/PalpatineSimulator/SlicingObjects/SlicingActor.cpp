@@ -3,7 +3,6 @@
 
 #include "SlicingActor.h"
 
-
 // Sets default values
 ASlicingActor::ASlicingActor()
 {
@@ -26,4 +25,3 @@ ASlicingActor::ASlicingActor()
 void ASlicingActor::MeshSliced_Implementation()
 {
 }
-

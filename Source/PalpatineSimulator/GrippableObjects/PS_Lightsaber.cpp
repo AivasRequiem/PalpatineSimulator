@@ -1,14 +1,10 @@
 ﻿// Copyright(c)  AivasGroup. All Rights Reserved.
 
 #include "PS_Lightsaber.h"
-
 #include "NiagaraComponent.h"
-#include "NiagaraFunctionLibrary.h"
-#include "NiagaraFunctionLibrary.h"
 #include "NiagaraFunctionLibrary.h"
 #include "Components/AudioComponent.h"
 #include "Kismet/KismetMathLibrary.h"
-#include "Kismet/KismetSystemLibrary.h"
 #include "PalpatineSimulator/SlicingObjects/SlicingActor.h"
 
 // Sets default values
@@ -19,6 +15,7 @@ APS_Lightsaber::APS_Lightsaber(const FObjectInitializer& ObjectInitializer) : Su
 
 	Hilt = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Hilt"));
 	SetRootComponent(Hilt);
+	Hilt->SetSimulatePhysics(true);
 
 	Blade = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Blade"));
 	Blade->SetupAttachment(Hilt);
@@ -33,7 +30,7 @@ APS_Lightsaber::APS_Lightsaber(const FObjectInitializer& ObjectInitializer) : Su
 	HummingAudio->SetSound(HummingSound);
 	HummingAudio->SetAutoActivate(false);
 	HummingAudio->SetVolumeMultiplier(0.0f);
-	
+
 	ActionAudio = CreateDefaultSubobject<UAudioComponent>(TEXT("ActionAudio"));
 	ActionAudio->SetAutoActivate(false);
 
@@ -83,7 +80,7 @@ void APS_Lightsaber::TurnOff()
 void APS_Lightsaber::ActivateItem_Implementation()
 {
 	IInteractableItem::ActivateItem_Implementation();
-	
+
 	if (TurnedOn)
 	{
 		TurnOff();
@@ -163,7 +160,8 @@ void APS_Lightsaber::BeginPlay()
 	}
 	else
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, "APixoVRPlayerController::BeginPlay Setup ChangingFadeOpacityCurve");
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red,
+		                                 "APixoVRPlayerController::BeginPlay Setup ChangingFadeOpacityCurve");
 	}
 
 	Blade->OnComponentEndOverlap.AddDynamic(this, &APS_Lightsaber::OnBladeEndOverlap);

@@ -32,4 +32,9 @@ public:
 	UInputAction* LeftActivateItem;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	UInputAction* RightActivateItem;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UInputAction* LeftForcePull;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UInputAction* RightForcePull;
 };

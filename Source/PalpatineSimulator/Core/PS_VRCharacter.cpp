@@ -32,6 +32,9 @@ APS_VRCharacter::APS_VRCharacter() : BaseTurnRate(45.0f), BaseLookUpRate(45.0f),
 	LeftGrabSphere->SetHiddenInGame(false, true);
 	LeftGrabSphere->SetSphereRadius(6.0f);
 	LeftGrabSphere->SetRelativeLocation(FVector(5.0f, 0.0f, 0.0f));
+
+	LeftHandForce = CreateDefaultSubobject<UForceHandComponent>(TEXT("Left Hand Force"));
+	LeftHandForce->HandController = LeftMotionController;
 	
 	RightHand = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Right Hand"));
 	RightHand->SetRelativeRotation(FRotator(0.0f, 0.0f, 90.0f));
@@ -45,6 +48,9 @@ APS_VRCharacter::APS_VRCharacter() : BaseTurnRate(45.0f), BaseLookUpRate(45.0f),
 	RightGrabSphere->SetHiddenInGame(false, true);
 	RightGrabSphere->SetSphereRadius(6.0f);
 	RightGrabSphere->SetRelativeLocation(FVector(5.0f, 0.0f, 0.0f));
+
+	RightHandForce = CreateDefaultSubobject<UForceHandComponent>(TEXT("Right Hand Force"));
+	RightHandForce->HandController = RightMotionController;
 	
 	bUseControllerRotationPitch = true;
 	bUseControllerRotationYaw = true;
@@ -144,6 +150,11 @@ void APS_VRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 
 	PEI->BindAction(InputActions->LeftActivateItem, ETriggerEvent::Started, this, &APS_VRCharacter::LeftActivateItem);
 	PEI->BindAction(InputActions->RightActivateItem, ETriggerEvent::Started, this, &APS_VRCharacter::RightActivateItem);
+
+	PEI->BindAction(InputActions->LeftForcePull, ETriggerEvent::Started, this, &APS_VRCharacter::LeftForceActivate);
+	PEI->BindAction(InputActions->LeftForcePull, ETriggerEvent::Completed, this, &APS_VRCharacter::LeftForceDeactivate);
+	PEI->BindAction(InputActions->RightForcePull, ETriggerEvent::Started, this, &APS_VRCharacter::RightForceActivate);
+	PEI->BindAction(InputActions->RightForcePull, ETriggerEvent::Completed, this, &APS_VRCharacter::RightForceDeactivate);
 }
 
 void APS_VRCharacter::LeftActivateItem_Implementation()
@@ -154,6 +165,32 @@ void APS_VRCharacter::LeftActivateItem_Implementation()
 void APS_VRCharacter::RightActivateItem_Implementation()
 {
 	ActivateItemInHand(RightMotionController);
+}
+
+void APS_VRCharacter::LeftForceActivate()
+{
+	if (!LeftMotionController->HasGrippedObjects())
+	{
+		LeftHandForce->ForcePullActivate();
+	}
+}
+
+void APS_VRCharacter::LeftForceDeactivate()
+{
+	LeftHandForce->ForcePullDeactivate();
+}
+
+void APS_VRCharacter::RightForceActivate()
+{
+	if (!RightMotionController->HasGrippedObjects())
+	{
+		RightHandForce->ForcePullActivate();
+	}
+}
+
+void APS_VRCharacter::RightForceDeactivate()
+{
+	RightHandForce->ForcePullDeactivate();
 }
 
 void APS_VRCharacter::ActivateFPSMode(bool Enable)
@@ -226,25 +263,35 @@ void APS_VRCharacter::LookPC(const FInputActionValue& Value)
 	}
 }
 
-void APS_VRCharacter::LeftGripPressed_Implementation(const FInputActionValue& Value)
+void APS_VRCharacter::LeftGripPressed_Implementation()
 {
 	LeftGripAnim = true;
 	UGrippableFunctionLibrary::GripObject(LeftMotionController, RightMotionController, LeftGrabSphere);
+
+	if (LeftMotionController->HasGrippedObjects())
+	{
+		LeftForceDeactivate();
+	}
 }
 
-void APS_VRCharacter::LeftGripReleased_Implementation(const FInputActionValue& Value)
+void APS_VRCharacter::LeftGripReleased_Implementation()
 {
 	LeftGripAnim = false;
 	UGrippableFunctionLibrary::DropObject(LeftMotionController);
 }
 
-void APS_VRCharacter::RightGripPressed_Implementation(const FInputActionValue& Value)
+void APS_VRCharacter::RightGripPressed_Implementation()
 {
 	RightGripAnim = true;
 	UGrippableFunctionLibrary::GripObject(RightMotionController, LeftMotionController, RightGrabSphere);
+
+	if (RightMotionController->HasGrippedObjects())
+	{
+		RightForceDeactivate();
+	}
 }
 
-void APS_VRCharacter::RightGripReleased_Implementation(const FInputActionValue& Value)
+void APS_VRCharacter::RightGripReleased_Implementation()
 {
 	RightGripAnim = false;
 	UGrippableFunctionLibrary::DropObject(RightMotionController);
@@ -293,10 +340,10 @@ void APS_VRCharacter::SpawnTeleporter(EControllerHand Hand)
 	}
 }
 
-void APS_VRCharacter::ActivateItemInHand(UGripMotionControllerComponent* Hand)
+void APS_VRCharacter::ActivateItemInHand(UGripMotionControllerComponent* HandController)
 {
 	TArray<FBPActorGripInformation> GripArray;
-	Hand->GetAllGrips(GripArray);
+	HandController->GetAllGrips(GripArray);
 
 	for (auto Grip : GripArray)
 	{

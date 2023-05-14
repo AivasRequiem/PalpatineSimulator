@@ -8,6 +8,7 @@
 #include "Components/SphereComponent.h"
 #include "EnhancedInput/Public/InputMappingContext.h"
 #include "PalpatineSimulator/CharacterTools/PS_Teleporter.h"
+#include "PalpatineSimulator/FunctionLibraries/ForceHandComponent.h"
 #include "PS_VRCharacter.generated.h"
 
 UENUM(BlueprintType)
@@ -55,30 +56,45 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Hands")
-	void RightGripPressed(const FInputActionValue& Value);
+	void RightGripPressed();
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Hands")
-	void LeftGripPressed(const FInputActionValue& Value);
+	void LeftGripPressed();
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Hands")
-	void RightGripReleased(const FInputActionValue& Value);
+	void RightGripReleased();
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Hands")
-	void LeftGripReleased(const FInputActionValue& Value);
+	void LeftGripReleased();
 
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Hands")
 	void LeftActivateItem();
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Hands")
 	void RightActivateItem();
 
+	// Force use
+	UFUNCTION(Category = "Force")
+	void LeftForceActivate();
+	UFUNCTION(Category = "Force")
+	void LeftForceDeactivate();
+	UFUNCTION(Category = "Force")
+	void RightForceActivate();
+	UFUNCTION(Category = "Force")
+	void RightForceDeactivate();
+
+	UPROPERTY(EditDefaultsOnly, Category = "Force")
+	UForceHandComponent* LeftHandForce;
+	UPROPERTY(EditDefaultsOnly, Category = "Force")
+	UForceHandComponent* RightHandForce;
+
 	// For Windows
 	UFUNCTION()
 	void ActivateFPSMode(bool Enable);
-	
+
 	void MovePC(const FInputActionValue& Value);
 	void LookPC(const FInputActionValue& Value);
 
 	bool bFPSMode;
 	float BaseTurnRate;
 	float BaseLookUpRate;
-	
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Character")
 	float DefaultPlayerHeight;
 
@@ -90,17 +106,21 @@ public:
 	USphereComponent* LeftGrabSphere;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Hands")
 	USphereComponent* RightGrabSphere;
-	
+
 	UPROPERTY(BlueprintReadWrite, Category = "Hands|Animation")
 	bool LeftGripAnim;
 	UPROPERTY(BlueprintReadWrite, Category = "Hands|Animation")
 	bool RightGripAnim;
 
-	/********************************* Teleport *********************************/ 
-	UFUNCTION(BlueprintCallable) void LeftTeleportPressed(const FInputActionValue& Value);
-	UFUNCTION(BlueprintCallable) void LeftTeleportReleased(const FInputActionValue& Value);
-	UFUNCTION(BlueprintCallable) void RightTeleportPressed(const FInputActionValue& Value);
-	UFUNCTION(BlueprintCallable) void RightTeleportReleased(const FInputActionValue& Value);
+	/********************************* Teleport *********************************/
+	UFUNCTION(BlueprintCallable)
+	void LeftTeleportPressed(const FInputActionValue& Value);
+	UFUNCTION(BlueprintCallable)
+	void LeftTeleportReleased(const FInputActionValue& Value);
+	UFUNCTION(BlueprintCallable)
+	void RightTeleportPressed(const FInputActionValue& Value);
+	UFUNCTION(BlueprintCallable)
+	void RightTeleportReleased(const FInputActionValue& Value);
 
 	virtual bool CanTeleport() const;
 
@@ -112,7 +132,7 @@ public:
 	void ActivateTeleporter(EControllerHand Hand, bool InActivate);
 
 	void SpawnTeleporter(EControllerHand Hand);
-	
+
 	UPROPERTY(BlueprintReadOnly, Category = "Teleport")
 	APS_Teleporter* TeleportControllerLeft;
 	UPROPERTY(BlueprintReadOnly, Category = "Teleport")
@@ -127,8 +147,8 @@ public:
 	FOnTeleportationActivated OnTeleportationActivatedEvent;
 
 protected:
-	void ActivateItemInHand(UGripMotionControllerComponent* Hand);
-	
+	void ActivateItemInHand(UGripMotionControllerComponent* HandController);
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
 	UInputMappingContext* InputMapping;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
