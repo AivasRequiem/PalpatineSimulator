@@ -29,9 +29,8 @@ APS_VRCharacter::APS_VRCharacter() : BaseTurnRate(45.0f), BaseLookUpRate(45.0f),
 	LeftGrabSphere->SetCollisionProfileName("OverlapAll");
 	LeftGrabSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	LeftGrabSphere->SetVisibility(true, true);
-	LeftGrabSphere->SetHiddenInGame(false, true);
+	LeftGrabSphere->SetHiddenInGame(true, true);
 	LeftGrabSphere->SetSphereRadius(6.0f);
-	LeftGrabSphere->SetRelativeLocation(FVector(5.0f, 0.0f, 0.0f));
 
 	LeftHandForce = CreateDefaultSubobject<UForceHandComponent>(TEXT("Left Hand Force"));
 	LeftHandForce->HandController = LeftMotionController;
@@ -45,9 +44,8 @@ APS_VRCharacter::APS_VRCharacter() : BaseTurnRate(45.0f), BaseLookUpRate(45.0f),
 	RightGrabSphere->SetCollisionProfileName("OverlapAll");
 	RightGrabSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	RightGrabSphere->SetVisibility(true, true);
-	RightGrabSphere->SetHiddenInGame(false, true);
+	RightGrabSphere->SetHiddenInGame(true, true);
 	RightGrabSphere->SetSphereRadius(6.0f);
-	RightGrabSphere->SetRelativeLocation(FVector(5.0f, 0.0f, 0.0f));
 
 	RightHandForce = CreateDefaultSubobject<UForceHandComponent>(TEXT("Right Hand Force"));
 	RightHandForce->HandController = RightMotionController;
@@ -68,6 +66,9 @@ APS_VRCharacter::APS_VRCharacter() : BaseTurnRate(45.0f), BaseLookUpRate(45.0f),
 void APS_VRCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	LeftMotionController->SetCustomPivotComponent(LeftGrabSphere);
+	RightMotionController->SetCustomPivotComponent(RightGrabSphere);
 
 	SetupForPlatform();
 	
@@ -205,6 +206,8 @@ void APS_VRCharacter::ActivateFPSMode(bool Enable)
 		LeftMotionController->SetRelativeLocation(FVector(62.0f, -28.0f, -15.0f));
 		LeftHand->SetRelativeLocation(FVector(-12.0f, 0.0f, 0.0f));
 		LeftHand->SetRelativeRotation(FRotator(0.0f, 0.0f, 90.0f));
+		LeftGrabSphere->SetRelativeLocation(FVector(0.0f, 0.0f, 0.0f));
+		LeftGrabSphere->SetRelativeRotation(FRotator(0.0f, 0.0f, 0.0f));
 
 		RightMotionController->bUseWithoutTracking = true;
 		RightMotionController->bOffsetByControllerProfile = true;
@@ -212,6 +215,8 @@ void APS_VRCharacter::ActivateFPSMode(bool Enable)
 		RightMotionController->SetRelativeLocation(FVector(62.0f, 31.0f, -15.0f));
 		RightHand->SetRelativeLocation(FVector(-12.0f, 0.0f, 0.0f));
 		RightHand->SetRelativeRotation(FRotator(0.0f, 0.0f, 90.0f));
+		RightGrabSphere->SetRelativeLocation(FVector(0.0f, 0.0f, 0.0f));
+		RightGrabSphere->SetRelativeRotation(FRotator(0.0f, 0.0f, 0.0f));
 
 		bUseControllerRotationPitch = false;
 

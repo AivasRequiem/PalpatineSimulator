@@ -1,6 +1,7 @@
 ﻿// Copyright(c) AivasGroup. All Rights Reserved.
 
 #include "ForceHandComponent.h"
+#include "Kismet/KismetSystemLibrary.h"
 #include "Math/UnrealMathUtility.h"
 
 UForceHandComponent::UForceHandComponent()
@@ -35,20 +36,27 @@ void UForceHandComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 
 void UForceHandComponent::ForcePullActivate()
 {
-	FHitResult HitResult;
-	const bool IsHit = GetWorld()->LineTraceSingleByChannel(HitResult,
-	                                                        HandController->GetComponentLocation(),
-	                                                        HandController->GetComponentLocation() + HandController->GetForwardVector() * 1500.0f,
-	                                                        ECC_Visibility);
+	TArray<FHitResult> HitResults;
+	TArray<AActor*> ActorsToIgnore;
+	const bool IsHit = UKismetSystemLibrary::BoxTraceMulti(this, HandController->GetPivotLocation(),
+	                                                        HandController->GetPivotLocation() + HandController->CustomPivotComponent->GetForwardVector() * 1000.0f, FVector(10, 10, 10),
+	                                                        HandController->CustomPivotComponent->GetComponentRotation(),
+	                                                        UEngineTypes::ConvertToTraceType(ECC_GameTraceChannel1), true,
+	                                                        ActorsToIgnore, EDrawDebugTrace::None, HitResults,
+	                                                        true);
 
 	if (IsHit)
 	{
-		if (HitResult.Component->IsAnySimulatingPhysics())
+		for (FHitResult HitResult : HitResults)
 		{
-			MoveTarget = HitResult.Component.Get();
-			MoveTarget->SetSimulatePhysics(false);
-			MoveTimeline.SetPlayRate(0.3f);
-			MoveTimeline.PlayFromStart();
+			if (HitResult.Component->IsAnySimulatingPhysics())
+			{
+				MoveTarget = HitResult.Component.Get();
+				MoveTarget->SetSimulatePhysics(false);
+				MoveTimeline.SetPlayRate(0.3f);
+				MoveTimeline.PlayFromStart();
+				break;
+			}
 		}
 	}
 }
@@ -71,14 +79,15 @@ void UForceHandComponent::MoveTimelineProgress(float Value)
 	FVector FinalPosition;
 	if (MoveTargetToHand())
 	{
-		FinalPosition = HandController->GetComponentLocation();
+		FinalPosition = HandController->CustomPivotComponent->GetComponentLocation();
 	}
 	else
 	{
-		FinalPosition = HandController->GetComponentLocation() + HandController->GetForwardVector() * 200.0f;
+		FinalPosition = HandController->CustomPivotComponent->GetComponentLocation() + HandController->CustomPivotComponent->GetForwardVector() * 100.0f;
 	}
 
-	MoveTarget->SetWorldLocation(FMath::Lerp(CurrentPosition, FinalPosition, Value), true);
+	const FVector DesiredLocation = FMath::Lerp(CurrentPosition, FinalPosition, Value);
+	MoveTarget->SetWorldLocation(DesiredLocation, true);
 }
 
 void UForceHandComponent::MoveFinishedCallback()

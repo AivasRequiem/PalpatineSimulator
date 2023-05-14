@@ -13,6 +13,7 @@ ASlicingActor::ASlicingActor()
 	SetRootComponent(SlicingMesh);
 	SlicingMesh->bUseComplexAsSimpleCollision = false;
 	SlicingMesh->SetSimulatePhysics(true);
+	SlicingMesh->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Block);
 
 	MeshToCopy = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshToCopy"));
 	MeshToCopy->SetCollisionEnabled(ECollisionEnabled::NoCollision);

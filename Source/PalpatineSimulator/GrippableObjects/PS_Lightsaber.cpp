@@ -5,6 +5,7 @@
 #include "NiagaraFunctionLibrary.h"
 #include "Components/AudioComponent.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Kismet/KismetSystemLibrary.h"
 #include "PalpatineSimulator/SlicingObjects/SlicingActor.h"
 
 // Sets default values
@@ -176,10 +177,13 @@ void APS_Lightsaber::Tick(float DeltaTime)
 	if (TurnedOn)
 	{
 		FHitResult HitResult;
-		const bool IsHit = GetWorld()->LineTraceSingleByChannel(HitResult,
-		                                                        Blade->GetSocketLocation(BottomBladeSocket),
-		                                                        Blade->GetSocketLocation(TopBladeSocket),
-		                                                        ECC_Visibility);
+		TArray<AActor*> ActorsToIgnore;
+		const bool IsHit = UKismetSystemLibrary::BoxTraceSingle(this, Blade->GetSocketLocation(BottomBladeSocket),
+															Blade->GetSocketLocation(TopBladeSocket), FVector(2, 2, 2),
+															Blade->GetComponentRotation(),
+															UEngineTypes::ConvertToTraceType(ECC_Visibility), true,
+															ActorsToIgnore, EDrawDebugTrace::None, HitResult,
+															true);
 
 		if (IsHit)
 		{
