@@ -62,7 +62,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UNiagaraComponent* BladeCrossSparks;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	UNiagaraSystem* WallBurnVFX;
+	UMaterial* WallBurnMaterial;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	EBladeColor BladeColor;

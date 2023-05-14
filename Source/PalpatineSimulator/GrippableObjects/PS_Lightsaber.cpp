@@ -4,6 +4,7 @@
 #include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "Components/AudioComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "PalpatineSimulator/SlicingObjects/SlicingActor.h"
@@ -109,7 +110,6 @@ void APS_Lightsaber::OnBladeEndOverlap(UPrimitiveComponent* OverlappedComponent,
 		{
 			UProceduralMeshComponent* SlicingMesh = Cast<UProceduralMeshComponent>(OtherComp);
 			IsSlicing = false;
-			//EndSlicePoint = HitResult.Location;
 
 			const FVector SlicePlane = FVector::CrossProduct(
 				Blade->GetSocketLocation(BottomBladeSocket) - StartSlicePoint,
@@ -191,7 +191,9 @@ void APS_Lightsaber::Tick(float DeltaTime)
 			BladeCrossSparks->SetWorldScale3D(FVector(UKismetMathLibrary::RandomFloatInRange(0.5, 0.9)));
 			BladeCrossSparks->Activate();
 
-			UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, WallBurnVFX, HitResult.Location);
+			UGameplayStatics::SpawnDecalAttached(WallBurnMaterial, FVector(5), HitResult.GetComponent(),
+			                                     NAME_None, HitResult.Location, HitResult.Normal.Rotation(),
+			                                     EAttachLocation::KeepWorldPosition, 5.0f);
 
 			if (!IsSlicing && HitResult.GetActor()->IsA(ASlicingActor::StaticClass()))
 			{
