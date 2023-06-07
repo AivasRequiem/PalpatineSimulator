@@ -2,7 +2,7 @@
 
 #include "PS_Lightsaber.h"
 #include "NiagaraComponent.h"
-#include "NiagaraFunctionLibrary.h"
+#include "ProceduralMeshComponent.h"
 #include "Components/AudioComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -21,6 +21,8 @@ APS_Lightsaber::APS_Lightsaber(const FObjectInitializer& ObjectInitializer) : Su
 
 	Blade = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Blade"));
 	Blade->SetupAttachment(Hilt);
+	Blade->SetHiddenInGame(true);
+	Blade->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	PrimaryGripSocket = CreateDefaultSubobject<UHandSocketComponent>(TEXT("PrimaryGripSocket"));
 	PrimaryGripSocket->SetupAttachment(Hilt);
@@ -50,6 +52,9 @@ void APS_Lightsaber::TurnOn()
 {
 	if (!TurnedOn)
 	{
+		Blade->SetHiddenInGame(false);
+		Blade->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		
 		TurnedOn = true;
 		TurnOnTimeline.Play();
 
@@ -195,11 +200,12 @@ void APS_Lightsaber::Tick(float DeltaTime)
 			                                     NAME_None, HitResult.Location, HitResult.Normal.Rotation(),
 			                                     EAttachLocation::KeepWorldPosition, 5.0f);
 
-			if (!IsSlicing && HitResult.GetActor()->IsA(ASlicingActor::StaticClass()))
-			{
-				IsSlicing = true;
-				StartSlicePoint = HitResult.Location;
-			}
+			if (HitResult.GetActor()->IsValidLowLevel())
+				if (!IsSlicing && HitResult.GetActor()->IsA(ASlicingActor::StaticClass()))
+				{
+					IsSlicing = true;
+					StartSlicePoint = HitResult.Location;
+				}
 		}
 		else if (BladeCrossSparks->IsActive())
 		{
@@ -220,5 +226,7 @@ void APS_Lightsaber::TimelineFinishedCallback()
 	if (TurnOnTimeline.GetPlaybackPosition() == 0.0f)
 	{
 		HummingAudio->Deactivate();
+		Blade->SetHiddenInGame(true);
+		Blade->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
 }

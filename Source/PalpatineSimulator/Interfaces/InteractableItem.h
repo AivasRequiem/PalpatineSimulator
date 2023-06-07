@@ -14,7 +14,7 @@ class UInteractableItem : public UInterface
 };
 
 /**
- * 
+ * Interface for interactable items (for example, activation in hand) 
  */
 class PALPATINESIMULATOR_API IInteractableItem
 {

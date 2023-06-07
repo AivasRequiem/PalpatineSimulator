@@ -6,9 +6,10 @@
 #include "VRCharacter.h"
 #include "PS_InputConfigData.h"
 #include "Components/SphereComponent.h"
+#include "Components/WidgetComponent.h"
 #include "EnhancedInput/Public/InputMappingContext.h"
 #include "PalpatineSimulator/CharacterTools/PS_Teleporter.h"
-#include "PalpatineSimulator/FunctionLibraries/ForceHandComponent.h"
+#include "PalpatineSimulator/HandAdditions//ForceHandComponent.h"
 #include "PS_VRCharacter.generated.h"
 
 UENUM(BlueprintType)
@@ -97,6 +98,9 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Character")
 	float DefaultPlayerHeight;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="HUD")
+	UWidgetComponent* HUDWidget;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hands")
 	USkeletalMeshComponent* LeftHand;

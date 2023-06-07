@@ -5,10 +5,9 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "GripMotionControllerComponent.h"
-#include "GrippableFunctionLibrary.h"
+#include "PalpatineSimulator/HandAdditions/GrippableFunctionLibrary.h"
 #include "HeadMountedDisplayFunctionLibrary.h"
 #include "VRCharacterMovementComponent.h"
-#include "Kismet/KismetSystemLibrary.h"
 #include "PalpatineSimulator/Interfaces/InteractableItem.h"
 
 DEFINE_LOG_CATEGORY(LogPSVRCharacter);
@@ -58,6 +57,9 @@ APS_VRCharacter::APS_VRCharacter() : BaseTurnRate(45.0f), BaseLookUpRate(45.0f),
 	VRReplicatedCamera->bLockToHmd = true;
 	VRReplicatedCamera->bAutoSetLockToHmd = true;
 	VRReplicatedCamera->SetRelativeLocation(FVector(0.0f, 0.0f, DefaultPlayerHeight));
+
+	HUDWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("HUD Widget"));
+	HUDWidget->SetupAttachment(VRReplicatedCamera);
 
 	TeleporterSocket = "TeleportSocket";
 }

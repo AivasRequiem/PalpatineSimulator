@@ -13,7 +13,7 @@ public class PalpatineSimulator : ModuleRules
 		PrivateDependencyModuleNames.AddRange(new[]
 		{
 			"VRExpansionPlugin", "GameplayTags", "HeadMountedDisplay", "EnhancedInput",
-			"NavigationSystem", "Niagara", "ProceduralMeshComponent"
+			"NavigationSystem", "Niagara", "ProceduralMeshComponent", "UMG"
 		});
 
 		// Uncomment if you are using Slate UI
