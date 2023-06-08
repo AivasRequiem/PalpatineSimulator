@@ -5,6 +5,7 @@
 #include "Components/DecalComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "PalpatineSimulator/Core/PS_GameState.h"
 #include "PalpatineSimulator/GrippableObjects/PS_Lightsaber.h"
 
 // Sets default values
@@ -48,6 +49,12 @@ void ALaserProjectile::DeflectProjectile(const FHitResult& Hit)
 	// Set the new direction for the projectile movement
 	ProjectileMovement->Velocity = NewDirection * ProjectileMovement->InitialSpeed;
 	SetActorRotation(ProjectileMovement->Velocity.GetSafeNormal().Rotation() + FRotator(-90, 0, 0));
+
+	
+	if (APS_GameState* GameState = GetWorld()->GetGameState<APS_GameState>())
+	{
+		GameState->IncrementLasersDeflected();
+	}
 }
 
 void ALaserProjectile::OnHitEvent(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp,

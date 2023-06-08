@@ -16,12 +16,23 @@ public:
 	// Sets default values for this actor's properties
 	ASlicingActor();
 
-	UFUNCTION(BlueprintNativeEvent)
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+	void MeshDissolveWithDelay(float DelayTime);
+	
 	void MeshSliced();
 
+protected:
+	virtual void BeginPlay() override;
+
+	UPROPERTY(EditAnywhere)
+	TArray<UStaticMesh*> RandomMeshesToCopy;
+	UPROPERTY(EditAnywhere)
+	bool ShouldChooseRandomMesh;
+
+public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UProceduralMeshComponent* SlicingMesh;
-	// Allow CPUAccess for Mesh
+	// Generate Convex Collision
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UStaticMeshComponent* MeshToCopy;
 
