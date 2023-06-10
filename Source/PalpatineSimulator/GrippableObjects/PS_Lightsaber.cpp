@@ -130,8 +130,8 @@ void APS_Lightsaber::OnBladeEndOverlap(UPrimitiveComponent* OverlappedComponent,
 			SlicingActor->MeshSliced();
 
 			NewProcMesh->SetSimulatePhysics(true);
-			const FVector ImpulseVector = (NewProcMesh->GetComponentLocation() - SlicingMesh->GetComponentLocation()).GetSafeNormal() * 500.f;
-			NewProcMesh->AddImpulse(ImpulseVector, NAME_None, true);
+			const FVector ImpulseVector = (NewProcMesh->GetComponentLocation() - Blade->GetSocketLocation(TopBladeSocket)).GetSafeNormal() * 25000.f;
+			NewProcMesh->AddImpulse(ImpulseVector);
 		}
 	}
 }

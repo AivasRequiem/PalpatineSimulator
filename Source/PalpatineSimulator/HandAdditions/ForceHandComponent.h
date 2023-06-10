@@ -47,5 +47,5 @@ private:
 	bool MoveTargetToHand() const;
 	
 	void TurnBackCollision();
-	ECollisionEnabled::Type PreviousCollisionEnabled;
+	ECollisionEnabled::Type PreviousCollisionEnabled = ECollisionEnabled::QueryAndProbe;
 };

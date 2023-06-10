@@ -98,7 +98,7 @@ void APS_VRCharacter::SetupForPlatform()
 	{
 		UHeadMountedDisplayFunctionLibrary::SetTrackingOrigin(EHMDTrackingOrigin::Floor);
 	}
-	else if (DeviceName == "Oculus Quest") // Oculus
+	else if (DeviceName == "Oculus Quest" || DeviceName == "Oculus Quest2") // Oculus
 	{
 		UHeadMountedDisplayFunctionLibrary::SetTrackingOrigin(EHMDTrackingOrigin::Eye);
 		VRProxyComponent->AddLocalOffset(FVector(0.0f, 0.0f, DefaultPlayerHeight));
